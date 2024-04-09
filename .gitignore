@@ -1,0 +1,7 @@
+
+test_data/test_video_1.mp4
+weights/Yolov7_v2.onnx
+weights/Yolov7_v2.pt
+test_data/test_video_2.mp4
+/.ipynb_checkpoints
+/helper_files/.ipynb_checkpoints
