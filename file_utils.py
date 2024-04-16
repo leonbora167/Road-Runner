@@ -27,5 +27,5 @@ gdown.download(url=url, output=output, fuzzy=True)
 
 #Download CRAFT -> ONNX weights
 url = "https://drive.google.com/file/d/1dfy3TMEmEkuJUBC7Nw0kp7grUZ7hcL3k/view?usp=sharing"
-output = "test_data/craft_onnx.onnx"
+output = "weights/craft_onnx.onnx"
 gdown.download(url=url, output=output, fuzzy=True)

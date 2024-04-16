@@ -9,3 +9,5 @@ test_data/test_video_2.mp4
 /conversion_files/ONNX-TensorRT-Inference-CRAFT-pytorch
 /weights
 /test_data
+/ai_services/__pycache__
+/helper_files/__pycache__

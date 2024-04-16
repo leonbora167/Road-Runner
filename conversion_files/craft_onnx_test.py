@@ -39,7 +39,7 @@ mag_ratio=1.5
 poly=False
 show_time=False
 test_folder=False
-model_path = "../weights/craft_onnx.onnx"
+model_path = "..\weights\craft_onnx.onnx"
 
 img = cv2.imread("../toll_test.jpg")
 orig_img = img.copy()
