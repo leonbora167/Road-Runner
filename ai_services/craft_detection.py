@@ -10,6 +10,7 @@ from helper_files.craft_onnx_helper import loadImage,normalizeMeanVariance, resi
 from imutils.perspective import four_point_transform
 import json
 import onnxruntime
+from helper_files.file_utility_csv import save_vehicle, save_number_plate
 
 
 
@@ -31,24 +32,35 @@ def bytes_to_frame(img_bytes):
 
 def craft_infer(data):
     full_frame = bytes_to_frame(data["full_frame"]) #Image in array format
-    x1,y1, x2,y2 = data["x1"], data["y1"], data["x2"], data["y2"]
-    yolo_crop = full_frame[y1:y2, x1:x2]
-    img_resized, ratio_w, ratio_h = craft_preprocessing(yolo_crop)
-    ort_inputs = {model.get_inputs()[0].name: to_numpy(img_resized)}
-    ort_outs = model.run(None, ort_inputs)
-    y = ort_outs[0]
+    class_id = data["class"] #Class id              0 | Number Plate      ;         1 | Vehicle
+    yolo_crop = full_frame[y1:y2, x1:x2]  # Cropped image taken from YOLO Model
+    if(class_id == 1):
+        encoded_vehicle_image = img_to_bytes(yolo_crop)
+        data["encoded_vehicle_image"] = encoded_vehicle_image
+        save_vehicle(data)
+        #break
+    elif(class_id == 0)
+        #x1,y1, x2,y2 = data["x1"], data["y1"], data["x2"], data["y2"]
+        img_resized, ratio_w, ratio_h = craft_preprocessing(yolo_crop)
+        ort_inputs = {model.get_inputs()[0].name: to_numpy(img_resized)}
+        ort_outs = model.run(None, ort_inputs)
+        y = ort_outs[0]
 
-    # make score and link map
-    score_text = y[0, :, :, 0]
-    score_link = y[0, :, :, 1]
+        # make score and link map
+        score_text = y[0, :, :, 0]
+        score_link = y[0, :, :, 1]
 
-    # Post-processing
-    boxes, polys = getDetBoxes(score_text, score_link, text_threshold, link_threshold, low_text, poly)
+        # Post-processing
+        boxes, polys = getDetBoxes(score_text, score_link, text_threshold, link_threshold, low_text, poly)
 
-    # coordinate adjustment
-    boxes = adjustResultCoordinates(boxes, ratio_w, ratio_h)
-    cv2.imwrite("../temp/"+str(x1)+".jpg", yolo_crop)
-    print("Boxes are \n",boxes)
+        # coordinate adjustment
+        boxes = adjustResultCoordinates(boxes, ratio_w, ratio_h)
+        data["text_segment_coordinates"] = boxes
+        encoded_number_plate_image = img_to_bytes(yolo_crop)
+        data["encoded_number_plate_image"] = encoded_number_plate_image
+        save_number_plate(data)
+        #cv2.imwrite("../temp/"+str(x1)+".jpg", yolo_crop) #Was checking if the outputs are coming or not
+        #print("Boxes are \n",boxes)
 
 def load_craft():
     model_path = "..\weights\craft_onnx.onnx"
@@ -90,3 +102,8 @@ test_folder = False
 
 #Loading CRAFT Model in ONNX Format
 model = load_craft()
+
+def img_to_bytes(img_array): #Takes an array of an image and does
+    img_bytes = cv2.imencode(".jpg", img_array)[1].tobytes()
+    img_encoded = base64.b64encode(img_bytes).decode("utf-8")  # Encode as Base64
+    return img_encoded

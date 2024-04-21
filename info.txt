@@ -1,0 +1,19 @@
+data
+    { "full_frame" : Contains the full image sent by the server
+      "encoded_vehicle_image" : Contains the cropped vehicle image
+      "encoded_number_plate_image" : Contains the cropped number plate image
+      "x1" : Yolo coordinate
+      "x2" : Yolo coordinate
+      "y1" : Yolo coordinate
+      "y2" : Yolo coordinate
+      "conf" : Confidence of yolo prediction
+      "class" : Class id of yolo detection
+      "text_segment_coordinates" : Contains the coordinates from craft detections
+      "counter" : counter from stream_server.py
+     }
+
+
+A.1 python zmq_stream_handler.py --input test_data/test_video_1.mp4
+A.2 python stream_server.py
+A.3 uvicorn yolo_detection:yolo_app --host 0.0.0.0 --port 8000
+A.4 uvicorn craft_detection:craft_app --host 0.0.0.0 --port 8001
