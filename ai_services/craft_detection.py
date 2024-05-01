@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 import torch
 import base64
+import uvicorn
 from helper_files.craft_onnx_helper import loadImage,normalizeMeanVariance, resize_aspect_ratio, getDetBoxes, adjustResultCoordinates
 from imutils.perspective import four_point_transform
 import json
@@ -33,14 +34,14 @@ def bytes_to_frame(img_bytes):
 def craft_infer(data):
     full_frame = bytes_to_frame(data["full_frame"]) #Image in array format
     class_id = data["class"] #Class id              0 | Number Plate      ;         1 | Vehicle
+    x1,y1, x2,y2 = data["x1"], data["y1"], data["x2"], data["y2"]
     yolo_crop = full_frame[y1:y2, x1:x2]  # Cropped image taken from YOLO Model
     if(class_id == 1):
         encoded_vehicle_image = img_to_bytes(yolo_crop)
         data["encoded_vehicle_image"] = encoded_vehicle_image
         save_vehicle(data)
         #break
-    elif(class_id == 0)
-        #x1,y1, x2,y2 = data["x1"], data["y1"], data["x2"], data["y2"]
+    elif(class_id == 0):
         img_resized, ratio_w, ratio_h = craft_preprocessing(yolo_crop)
         ort_inputs = {model.get_inputs()[0].name: to_numpy(img_resized)}
         ort_outs = model.run(None, ort_inputs)
@@ -103,7 +104,10 @@ test_folder = False
 #Loading CRAFT Model in ONNX Format
 model = load_craft()
 
-def img_to_bytes(img_array): #Takes an array of an image and does
+def img_to_bytes(img_array): #Takes an array of an image and converts it to bytes to send it through a JSON Dictionary
     img_bytes = cv2.imencode(".jpg", img_array)[1].tobytes()
     img_encoded = base64.b64encode(img_bytes).decode("utf-8")  # Encode as Base64
     return img_encoded
+
+if __name__ == "__main__":
+    uvicorn.run(craft_app, host="0.0.0.0", port=8001)

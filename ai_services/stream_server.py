@@ -9,9 +9,10 @@ SERVER_ADDRESS = "127.0.0.1"
 SERVER_PORT = 8000
 SERVICE_NAME = "yolo_detection"
 url = f"http://{SERVER_ADDRESS}:{SERVER_PORT}/{SERVICE_NAME}"
-counter = 0
+#counter = 0
 
 def run():
+    counter = 0
     context = zmq.Context() 
     socket = context.socket(zmq.SUB)
     socket.subscribe("") #Subscribe to all topics 

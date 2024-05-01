@@ -11,3 +11,6 @@ test_data/test_video_2.mp4
 /test_data
 /ai_services/__pycache__
 /helper_files/__pycache__
+/output_data
+/cache_downloads
+output.txt

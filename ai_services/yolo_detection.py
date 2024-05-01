@@ -3,6 +3,7 @@ import json
 import requests
 from fastapi import FastAPI
 import base64
+import uvicorn
 import cv2 
 import numpy as np
 import torch 
@@ -48,7 +49,8 @@ def yolo_predict(data: dict):
     temp = onnx2xywh(outputs, orig_img, dwdh, ratio) #It returns a list which contains lists in the format of [[x1,y1,x2,y2],class id, confidence score]
     print(temp) #Print the coordinates and class values
     #print("FRAME NUMBER = ",data["frame_number"])
-    send_data(temp, orig_img)
+    counter = data["counter"]
+    send_data(temp, orig_img, counter)
     print("send data function called")
     return {"Message ": "Data Received"}
 
@@ -57,7 +59,7 @@ def img_preprocessing(frame_bytes):
     frame = cv2.imdecode(np.frombuffer(frame_bytes, np.uint8), cv2.IMREAD_COLOR)
     return frame
 
-def send_data(temp, orig_img):
+def send_data(temp, orig_img, counter):
     for i in temp:
         x1,y1 = i[0][0], i[0][1]
         x2,y2 = i[0][2], i[0][3]
@@ -72,8 +74,10 @@ def send_data(temp, orig_img):
                  "class": class_id,
                  "conf" : conf_score,
                  "full_frame" : orig_img_encoded}
+        data["counter"] = counter
         packet = json.dumps(data)
         response = requests.post(url=sending_url, data=packet)
         print("Detections and Image Sent to CRAFT")
 
-
+if __name__ == "__main__":
+    uvicorn.run(yolo_app, host="0.0.0.0", port=8000)
