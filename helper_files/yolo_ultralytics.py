@@ -21,7 +21,7 @@ def yolo_postprocess_vehicle(results):
         else:
             return response
         
-def yolo_postprocess_np(results):
+def yolo_postprocess_np(results, vehicle_image):
     if len(results[0].boxes) == 0:
         return [] # No dets 
     else:
@@ -33,4 +33,5 @@ def yolo_postprocess_np(results):
             class_id = i.boxes.cls[index].cpu().numpy().item()
             confidence = i.boxes.conf[index].cpu().numpy().item()
             response = [x1,y1,x2,y2, class_id, confidence]
-        return response
+            np_image = vehicle_image[y1:y2, x1:x2]
+        return response, np_image

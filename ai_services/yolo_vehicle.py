@@ -34,7 +34,7 @@ def zmq_listener():
         frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
                                                                                                                                                   
         results = model.predict(frame, device = 0, verbose=False)
-        model_response = yolo_postprocess_vehicle(results) #[[x1,y1,x2,y2,class_id,confidence]]                                                           
+        model_response = yolo_postprocess_vehicle(results) #[[x1,y1,x2,y2,class_id,confidence]]   #List of list since I am thinking of sending multiple vehicles to tracker                                                        
         if model_response == []: #Assuming no vehicles in frame or no valid vehicle dets in frame                                      
             continue    #Keep on trying frames till you get one with correct vehicle dets                                                                                                 
         print(f"Inferencing done for Frame ID [{metadata['frame_id']}]")                                                     
