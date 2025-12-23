@@ -9,7 +9,7 @@ from helper_files.yolo_ultralytics import yolo_postprocess_vehicle
 
 app = Flask(__name__)
 
-model = YOLO(model = r"C:\Projects\Road-Runner\weights\yolo11s.pt")
+model = YOLO(model = r"weights\\yolo11s.pt")
 print("YOLO Model for Vehicle Detection loaded")
 
 

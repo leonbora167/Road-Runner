@@ -32,6 +32,7 @@ def zmq_listener():
 
     pub_socket = context.socket(zmq.PUB)
     pub_socket.bind("tcp://*:5557")
+    print("Vehicle Tracker [PUB] ready for infer to Number Plate")
 
     while True:
         topic, metadata_json, frame_bytes = sub_socket_1.recv_multipart()
@@ -67,7 +68,7 @@ def zmq_listener():
             b"vehicle_tracker", #Topic
             json.dumps(message_2).encode("utf-8") 
         ]) 
-        print(f"NP Inferencing for frame {frame_metadata['frame_id']}")
+        print(f"Inferencing for frame {frame_metadata['frame_id']}")
 
 @app.route("/status", methods = ["GET"])
 def status():

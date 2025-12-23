@@ -6,10 +6,23 @@ import numpy as np
 from flask import Flask, jsonify 
 from ultralytics import YOLO 
 from helper_files.yolo_ultralytics import yolo_postprocess_np
+import logging, os
 
 app = Flask(__name__)
 
-model = YOLO(model = r"C:\Projects\Road-Runner\weights\yolov11s_np.pt")
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "yolo_np.log")
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                    handlers=[
+                        logging.FileHandler(log_file, mode="a")
+                        ])
+
+logging.info("YOLO Number Plate Service started")
+
+model = YOLO(model = r"weights//yolov11s_np.pt")
 print("YOLO Model for Vehicle Detection loaded")
 
 
@@ -23,7 +36,7 @@ def zmq_listener():
 
     sub_socket_2 = context.socket(zmq.SUB)
     sub_socket_2.connect("tcp://localhost:5557")
-    sub_socket_2.setsockopt_string(zmq.SUBSCRIBE, "yolo_vehicle") # Subscribing to "yolo_vehicle" topic only 
+    sub_socket_2.setsockopt_string(zmq.SUBSCRIBE, "vehicle_tracker") # Subscribing to "yolo_vehicle" topic only 
     print("Yolo Number Plate [SUB] listening for yolo-vehicle detections")
 
     pub_socket = context.socket(zmq.PUB)
@@ -38,16 +51,19 @@ def zmq_listener():
         frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
         frame = cv2.imdecode(frame_array, cv2.IMREAD_COLOR)
 
-        topic, vehicle_tracker__json = sub_socket_2.recv_multipart() # For vehicle detection outputs 
+        topic, vehicle_tracker_json = sub_socket_2.recv_multipart() # For vehicle detection outputs 
         vehicle_tracker_json = json.loads(vehicle_tracker_json.decode("utf-8"))
-        detections = vehicle_tracker_json["yolo_response"] # [[x1,y1,x2,y2, conf, class_id, track_id], ....] 
+        detections = vehicle_tracker_json["tracker_outputs"] # [[x1,y1,x2,y2, conf, class_id, track_id], ....] 
         for det in detections:
-            x1,y1,x2,y2, tracker_conf, track_id,  = det
+            x1,y1,x2,y2, tracker_conf, class_id, track_id  = det
             vehicle_image = frame[y1:y2, x1:x2]
             results = model.predict(vehicle_image, device = 0, verbose=False)
-            model_response, np_image = yolo_postprocess_np(results, vehicle_image) # [[x1,y1,x2,y2,class_id,confidence]]
-            print(f"Inferencing done for NP")
-            # model_response = model_response[0] #Taking the assumption for one number plate per vehicle so single list only -> [x1,y1,x2,y2, class_id, confidence]
+            try:
+                model_response, np_image = yolo_postprocess_np(results, vehicle_image) # [[x1,y1,x2,y2,class_id,confidence]]
+            except:
+                continue
+            #print(f"Inferencing done for NP")
+            logging.info(f"NP Inferencing done for Vehicle : {track_id}")
 
             message_1 = {
                 "frame_id" : metadata["frame_id"],
