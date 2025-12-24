@@ -2,8 +2,11 @@ import cv2
 import zmq 
 import json 
 import time 
+import sys
 
-video_path = "data/test_video_1.mp4"
+video_path = sys.argv[1]
+
+#video_path = "data/test_video_1.mp4"
 zmq_port = 5555
 
 context = zmq.Context() 

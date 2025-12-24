@@ -79,7 +79,8 @@ def zmq_listener():
             _, np_image_buffer = cv2.imencode(".jpg", np_image) #Encode frame as JPG
             np_image_bytes = np_image_buffer.tobytes()
             message_2 = {
-                "yolo_outputs" : model_response 
+                "yolo_outputs" : model_response,
+                "track_id" : track_id 
             }
             pub_socket.send_multipart([
                 b"yolo_number_plate", #Topic
